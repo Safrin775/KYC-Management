@@ -2,13 +2,11 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 
 class UserManager(BaseUserManager):
-    
     def create_user(self, email, password=None, role='applicant'):
         if not email:
             raise ValueError("Email is required")
         
         email = self.normalize_email(email)
-        
         user = self.model(
             email=email,
             role=role
@@ -22,7 +20,7 @@ class UserManager(BaseUserManager):
         user = self.create_user(
             email=email,
             password=password,
-            role='applicant'  
+            role='auditor'  
         )
         user.is_staff = True
         user.is_superuser = True
@@ -32,8 +30,7 @@ class UserManager(BaseUserManager):
 class User(AbstractUser):
     ROLE_CHOICES = (
         ('applicant', 'Applicant'),
-        ('auditor', 'Auditor'),
-        
+        ('auditor', 'Auditor'), 
     )
     username = None
     email = models.EmailField(unique=True)
