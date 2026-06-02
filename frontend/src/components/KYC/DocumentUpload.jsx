@@ -74,7 +74,7 @@ const DocumentUpload = ({ onNext, onBack }) => {
                     >
                         <CloudUploadIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
                         <Typography variant="body1" gutterBottom>
-                            Click to upload or drag and drop
+                            Click to upload
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
                             Supports: JPG, PNG (Max 5MB)

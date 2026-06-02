@@ -1,6 +1,6 @@
 import React from 'react';
 import { Container, Box, Paper, Typography, Button, Card, CardContent, Grid } from '@mui/material';
-import { useAuth } from '../../context/authContext';
+import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 const ApplicantDashboard = () => {
     const { user, logout } = useAuth();

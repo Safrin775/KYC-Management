@@ -1,12 +1,12 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/authContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './components/Auth/login';
 import Register from './components/Auth/register';
 import ApplicantDashboard from './components/Dashboard/applicantDashboard';
 // import AuditorDashboard from './components/Dashboard/AuditorDashboard';
 import { CircularProgress, Box } from '@mui/material';
-import KYCStepper from './components/KYC/KYCStepper';
+import IndexKYC from './components/KYC/IndexKYC';
 
 // Protected Route component
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
@@ -45,7 +45,7 @@ function AppContent() {
 
             <Route path="/kyc/form" element={
                 <ProtectedRoute allowedRoles={['applicant']}>
-                    <KYCStepper />
+                    <IndexKYC />
                 </ProtectedRoute>
             } />
             

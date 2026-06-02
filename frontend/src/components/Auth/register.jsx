@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {Container,Box,TextField,Button,Typography,Paper,Select,MenuItem,FormControl,InputLabel,Alert,CircularProgress} from '@mui/material';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../../context/authContext';
+import { useAuth } from '../../context/AuthContext';
 
 const Register = () => {
     const [formData, setFormData] = useState({

@@ -5,7 +5,6 @@ import {
     Button,
     Typography,
     Paper,
-    Alert
 } from '@mui/material';
 import { useKYC } from '../../context/KYCContext';
 

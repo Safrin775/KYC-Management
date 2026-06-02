@@ -9,11 +9,12 @@ import {
     Alert,
     Snackbar
 } from '@mui/material';
-import { useAuth } from '../../context/authContext';
+import { useAuth } from '../../context/AuthContext';
 import { KYCProvider, useKYC } from '../../context/KYCContext';
 import PersonalInfo from './PersonalInfo';
 import DocumentUpload from './DocumentUpload';
 import SelfieCapture from './SelfieCapture';
+import FaceMatch from './FaceMatch';
 
 const steps = [
     'Personal Information',
@@ -23,9 +24,8 @@ const steps = [
     'Submission'
 ];
 
-
 const KYCStepperContent = () => {
-    const { currentStep, setCurrentStep, submitKYC, loading } = useKYC();
+    const { currentStep, setCurrentStep, submitKYC} = useKYC();
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
 
@@ -45,6 +45,8 @@ const KYCStepperContent = () => {
                 return <DocumentUpload onNext={handleNext} onBack={handleBack} />;
             case 2:
                 return <SelfieCapture onNext={handleNext} onBack={handleBack} />;
+            case 3:
+                return <FaceMatch onNext={handleNext} onBack={handleBack} />;
             default:
                 return 'Unknown step';
         }

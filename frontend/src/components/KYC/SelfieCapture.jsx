@@ -17,7 +17,7 @@ const SelfieCapture = ({ onNext, onBack }) => {
     const webcamRef = useRef(null);
     const [capturedImage, setCapturedImage] = useState(kycData.selfie_preview || null);
     const [showWebcam, setShowWebcam] = useState(!kycData.selfie_preview);
-    const [loading, setLoading] = useState(false);
+
 
     const captureSelfie = useCallback(() => {
         const imageSrc = webcamRef.current.getScreenshot();
