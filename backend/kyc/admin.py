@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import KYCApplication
+from .models import KYCApplication, AuditLog
 
 @admin.register(KYCApplication)
 class KYCApplicationAdmin(admin.ModelAdmin):
@@ -25,3 +25,10 @@ class KYCApplicationAdmin(admin.ModelAdmin):
             'fields': ('submitted_at', 'updated_at')
         }),
     )
+    
+@admin.register(AuditLog)
+class AuditLogAdmin(admin.ModelAdmin):
+    list_display = ['id', 'application', 'auditor', 'action', 'created_at']
+    list_filter = ['action', 'created_at']
+    search_fields = ['application__full_name', 'auditor__email']
+    readonly_fields = ['created_at']

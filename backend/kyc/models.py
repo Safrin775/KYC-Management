@@ -8,7 +8,7 @@ class KYCApplication(models.Model):
         ('pending', 'Pending Review'),
         ('approved', 'Approved'),
         ('rejected', 'Rejected'),
-        ('incomplete', 'Incomplete'),
+        ('resubmit', 'Resubmit Required'),
     ]
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name='kyc_applications')
@@ -37,3 +37,24 @@ class KYCApplication(models.Model):
     
     class Meta:
         ordering = ['-submitted_at']
+        
+        
+class AuditLog(models.Model):
+    
+    ACTION_CHOICES = [
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('resubmit', 'Requested Resubmission'),
+    ]
+    
+    application = models.ForeignKey(KYCApplication, on_delete=models.CASCADE, related_name='audit_logs')
+    auditor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    action = models.CharField(max_length=20, choices=ACTION_CHOICES)
+    remarks = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.auditor.email} - {self.action} - App #{self.application.id}"
+    
+    class Meta:
+        ordering = ['-created_at']

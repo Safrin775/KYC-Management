@@ -7,4 +7,10 @@ urlpatterns = [
     path('status/', views.KYCStatusView.as_view(), name='kyc-status'),
     path('application/<int:application_id>/', views.KYCApplicationDetailView.as_view(), name='kyc-detail'),
     path('update/<int:application_id>/', views.UpdateKYCView.as_view(), name='update-kyc'),
+    path('auditor/pending/', views.PendingApplicationsView.as_view(), name='auditor-pending'),
+    path('auditor/application/<int:application_id>/', views.ApplicationDetailView.as_view(), name='auditor-detail'),
+    path('auditor/application/<int:application_id>/approve/', views.ApproveApplicationView.as_view(), name='auditor-approve'),
+    path('auditor/application/<int:application_id>/reject/', views.RejectApplicationView.as_view(), name='auditor-reject'),
+    path('auditor/resubmit/<int:application_id>/', views.ResubmitRequestView.as_view(), name='auditor-resubmit'),
+    path('auditor/audit-log/', views.AuditLogView.as_view(), name='auditor-audit-log'),
 ]

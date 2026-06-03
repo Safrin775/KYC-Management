@@ -1,3 +1,5 @@
+from datetime import timezone
+
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -5,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
 from .services import FaceMatchService
 from django.shortcuts import get_object_or_404
-from .models import KYCApplication
+from .models import AuditLog, KYCApplication
 from .serializers import KYCSubmitSerializer, KYCApplicationSerializer, KYCStatusSerializer
 
 class FaceVerificationView(APIView):
@@ -47,9 +49,10 @@ class SubmitKYCView(APIView):
     def post(self, request):
         
         existing_app = KYCApplication.objects.filter(
-            user=request.user
-        ).exclude(status='rejected').first()
-        
+            user=request.user,
+            status='pending'
+        ).first()
+
         if existing_app:
             return Response({
                 'success': False,
@@ -153,3 +156,255 @@ class UpdateKYCView(APIView):
             }, status=status.HTTP_200_OK)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    
+#  Auditor Views   
+
+class PendingApplicationsView(APIView):
+    
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        if request.user.role != 'auditor':
+            return Response({
+                'success': False,
+                'error': 'Access denied. Auditor role required.'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        date_from = request.query_params.get('date_from')
+        date_to = request.query_params.get('date_to')
+        status_filter = request.query_params.get('status')
+        applications = KYCApplication.objects.filter(status='pending')
+        
+        if date_from:
+            applications = applications.filter(submitted_at__date__gte=date_from)
+        if date_to:
+            applications = applications.filter(submitted_at__date__lte=date_to)
+        
+        applications = applications.order_by('submitted_at')
+        
+        data = []
+        for app in applications:
+            data.append({
+                'id': app.id,
+                'full_name': app.full_name,
+                'mobile': app.mobile,
+                'submitted_at': app.submitted_at,
+                'face_match_passed': app.face_match_passed,
+                'face_match_score': app.face_match_score,
+                'face_match_percentage': round(app.face_match_score * 100, 1) if app.face_match_score else 0
+                })
+        
+        return Response({
+            'success': True,
+            'count': len(data),
+            'applications': data
+        }, status=status.HTTP_200_OK)
+        
+class ApplicationDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, application_id):
+        if request.user.role != 'auditor':
+            return Response({
+                'success': False,
+                'error': 'Access denied. Auditor role required.'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        application = get_object_or_404(KYCApplication, id=application_id)
+        
+        AuditLog.objects.create(
+            application=application,
+            auditor=request.user,
+            action='viewed',
+            remarks='Auditor viewed application details'
+        )
+        
+        return Response({
+            'success': True,
+            'application': {
+                'id': application.id,
+                'full_name': application.full_name,
+                'dob': application.dob,
+                'mobile': application.mobile,
+                'pan_last4': application.pan_last4,
+                'id_document_url': application.id_document.url if application.id_document else None,
+                'selfie_url': application.selfie.url if application.selfie else None,
+                'face_match_passed': application.face_match_passed,
+                'face_match_score': application.face_match_score,
+                'face_match_percentage': round(application.face_match_score * 100, 1) if application.face_match_score else 0,
+                'status': application.status,
+                'submitted_at': application.submitted_at,
+                'rejection_reason': application.rejection_reason
+            }
+        }, status=status.HTTP_200_OK)
+        
+class ApproveApplicationView(APIView):
+    
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, application_id):
+        if request.user.role != 'auditor':
+            return Response({
+                'success': False,
+                'error': 'Access denied. Auditor role required.'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        application = get_object_or_404(KYCApplication, id=application_id)
+        
+        if application.status != 'pending':
+            return Response({
+                'success': False,
+                'error': f'Cannot approve application with status: {application.status}'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        remarks = request.data.get('remarks', '')
+        
+        application.status = 'approved'
+        application.reviewed_by = request.user
+        application.reviewed_at = timezone.now()
+        application.save()
+        
+        AuditLog.objects.create(
+            application=application,
+            auditor=request.user,
+            action='approved',
+            remarks=remarks
+        )
+        
+        return Response({
+            'success': True,
+            'message': f'Application #{application_id} approved successfully',
+            'status': 'approved'
+        }, status=status.HTTP_200_OK)
+        
+        
+class RejectApplicationView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, application_id):
+        if request.user.role != 'auditor':
+            return Response({
+                'success': False,
+                'error': 'Access denied. Auditor role required.'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        remarks = request.data.get('remarks', '')
+        
+        if not remarks:
+            return Response({
+                'success': False,
+                'error': 'Remarks are required for rejection'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        application = get_object_or_404(KYCApplication, id=application_id)
+        
+        if application.status != 'pending':
+            return Response({
+                'success': False,
+                'error': f'Cannot reject application with status: {application.status}'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        application.status = 'rejected'
+        application.rejection_reason = remarks
+        application.reviewed_by = request.user
+        application.reviewed_at = timezone.now()
+        application.save()
+        
+        AuditLog.objects.create(
+            application=application,
+            auditor=request.user,
+            action='rejected',
+            remarks=remarks
+        )
+        
+        return Response({
+            'success': True,
+            'message': f'Application #{application_id} rejected',
+            'status': 'rejected'
+        }, status=status.HTTP_200_OK)
+        
+class ResubmitRequestView(APIView):
+    
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, application_id):
+        if request.user.role != 'auditor':
+            return Response({
+                'success': False,
+                'error': 'Access denied. Auditor role required.'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        remarks = request.data.get('remarks', '')
+        
+        if not remarks:
+            return Response({
+                'success': False,
+                'error': 'Remarks are required for resubmission request'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        application = get_object_or_404(KYCApplication, id=application_id)
+        
+        if application.status != 'pending':
+            return Response({
+                'success': False,
+                'error': f'Cannot request resubmission for application with status: {application.status}'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        application.status = 'resubmit'
+        application.rejection_reason = remarks
+        application.reviewed_by = request.user
+        application.reviewed_at = timezone.now()
+        application.save()
+        
+        AuditLog.objects.create(
+            application=application,
+            auditor=request.user,
+            action='resubmit',
+            remarks=remarks
+        )
+        return Response({
+            'success': True,
+            'message': f'Resubmission requested for application #{application_id}',
+            'status': 'resubmit'
+        }, status=status.HTTP_200_OK)
+        
+class AuditLogView(APIView):
+    
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        if request.user.role != 'auditor':
+            return Response({
+                'success': False,
+                'error': 'Access denied. Auditor role required.'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        action_filter = request.query_params.get('action')
+        date_from = request.query_params.get('date_from')
+        date_to = request.query_params.get('date_to')
+        
+        logs = AuditLog.objects.select_related('application', 'auditor').all()
+        if action_filter:
+            logs = logs.filter(action=action_filter)
+        if date_from:
+            logs = logs.filter(created_at__date__gte=date_from)
+        if date_to:
+            logs = logs.filter(created_at__date__lte=date_to)
+        
+        logs = logs.order_by('-created_at')
+        
+        data = []
+        for log in logs:
+            data.append({
+                'id': log.id,
+                'application_id': log.application.id,
+                'applicant_name': log.application.full_name,
+                'auditor_email': log.auditor.email,
+                'action': log.action,
+                'remarks': log.remarks,
+                'created_at': log.created_at
+            })
+        return Response({
+            'success': True,
+            'count': len(data),
+            'logs': data
+        }, status=status.HTTP_200_OK)
+        
