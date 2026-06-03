@@ -15,6 +15,7 @@ import PersonalInfo from './PersonalInfo';
 import DocumentUpload from './DocumentUpload';
 import SelfieCapture from './SelfieCapture';
 import FaceMatch from './FaceMatch';
+import Submission from './Submission';
 
 const steps = [
     'Personal Information',
@@ -47,6 +48,8 @@ const KYCStepperContent = () => {
                 return <SelfieCapture onNext={handleNext} onBack={handleBack} />;
             case 3:
                 return <FaceMatch onNext={handleNext} onBack={handleBack} />;
+            case 4:
+                return <Submission onBack={handleBack} />;
             default:
                 return 'Unknown step';
         }

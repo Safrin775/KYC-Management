@@ -69,7 +69,6 @@ class SubmitKYCView(APIView):
         
         face_match_passed = request.data.get('face_match_passed') == 'true'
         face_match_score = request.data.get('face_match_score')
-        face_match_distance = request.data.get('face_match_distance')
         
         serializer = KYCSubmitSerializer(data=request.data)
         
@@ -80,7 +79,6 @@ class SubmitKYCView(APIView):
                 selfie=selfie,
                 face_match_passed=face_match_passed,
                 face_match_score=face_match_score,
-                face_match_distance=face_match_distance,
                 status='pending'
             )
             
