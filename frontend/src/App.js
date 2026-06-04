@@ -4,7 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './components/Auth/login';
 import Register from './components/Auth/register';
 import ApplicantDashboard from './components/Dashboard/applicantDashboard';
-// import AuditorDashboard from './components/Dashboard/AuditorDashboard';
+import AuditorDashboard from './components/auditor/AuditorDashboard';
 import { CircularProgress, Box } from '@mui/material';
 import IndexKYC from './components/KYC/IndexKYC';
 
@@ -49,15 +49,12 @@ function AppContent() {
                 </ProtectedRoute>
             } />
             
-            {/* <Route path="/auditor/dashboard" element={
+            <Route path="/auditor/dashboard" element={
                 <ProtectedRoute allowedRoles={['auditor']}>
                     <AuditorDashboard />
                 </ProtectedRoute>
-            } /> */}
-
-
+            } />
             
-           
             <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>
     );

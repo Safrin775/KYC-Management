@@ -1,4 +1,4 @@
-from datetime import timezone
+from django.utils import timezone
 
 from rest_framework import status
 from rest_framework.response import Response
@@ -47,7 +47,13 @@ class SubmitKYCView(APIView):
     parser_classes = [MultiPartParser, FormParser]
     
     def post(self, request):
-        
+        mobile = request.data.get('mobile')
+        if KYCApplication.objects.filter(mobile=mobile).exists():
+            return Response({
+                'success': False,
+                'error': 'This mobile number is already used in another KYC application'
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
         existing_app = KYCApplication.objects.filter(
             user=request.user,
             status='pending'
@@ -71,6 +77,7 @@ class SubmitKYCView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
         
         face_match_passed = request.data.get('face_match_passed') == 'true'
+        face_match_skipped = request.data.get('face_match_skipped') == 'true'
         face_match_score = request.data.get('face_match_score')
         
         serializer = KYCSubmitSerializer(data=request.data)
@@ -82,6 +89,7 @@ class SubmitKYCView(APIView):
                 selfie=selfie,
                 face_match_passed=face_match_passed,
                 face_match_score=face_match_score,
+                face_match_skipped=face_match_skipped,
                 status='pending'
             )
             

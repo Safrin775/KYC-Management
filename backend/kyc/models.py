@@ -22,6 +22,7 @@ class KYCApplication(models.Model):
     face_match_score=models.FloatField(null=True, blank=True,help_text="Face match score (0-1)")
     face_match_passed=models.BooleanField(default=False,help_text="Did the face match pass the threshold?")
     face_match_message=models.CharField(max_length=255, null=True, blank=True,help_text="Message from face match process")
+    face_match_skipped = models.BooleanField(default=False)
     
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
     rejection_reason = models.TextField( blank=True,help_text="Reason for rejection")
@@ -37,6 +38,9 @@ class KYCApplication(models.Model):
     
     class Meta:
         ordering = ['-submitted_at']
+        constraints = [
+            models.UniqueConstraint(fields=['mobile'], name='unique_mobile_in_kyc'),
+        ]
         
         
 class AuditLog(models.Model):

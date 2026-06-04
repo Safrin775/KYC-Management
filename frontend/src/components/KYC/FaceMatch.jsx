@@ -1,28 +1,19 @@
-import React, { useState, useRef } from 'react';
-import {
-    Box,
-    Button,
-    Typography,
-    Paper,
-    CircularProgress,
-    Alert,
-    Card,
-    CardMedia,
-    Grid
+import React, { useState } from 'react';
+import {Box,Button,Typography,Paper,CircularProgress,Alert,Card,CardMedia,Grid,Dialog,DialogTitle,
+    DialogContent,DialogContentText,DialogActions
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
+import SkipNextIcon from '@mui/icons-material/SkipNext';
 import { useKYC } from '../../context/KYCContext';
 import api from '../../services/api';
 
 const FaceMatch = ({ onNext, onBack }) => {
-    const { kycData, updateKYCData, loading } = useKYC();
+    const { kycData, updateKYCData } = useKYC();
     const [processing, setProcessing] = useState(false);
     const [result, setResult] = useState(null);
     const [error, setError] = useState('');
-    
-    const idImageRef = useRef(null);
-    const selfieImageRef = useRef(null);
+    const [skipDialogOpen, setSkipDialogOpen] = useState(false);
 
     const verifyFace = async () => {
         setProcessing(true);
@@ -45,6 +36,7 @@ const FaceMatch = ({ onNext, onBack }) => {
                 
                 updateKYCData('face_match_passed', passed);
                 updateKYCData('face_match_score', score);
+                updateKYCData('face_match_skipped', false);  
                 updateKYCData('face_match_message', message);
                 
                 setResult({
@@ -56,16 +48,28 @@ const FaceMatch = ({ onNext, onBack }) => {
                 if (passed) {
                     setTimeout(() => onNext(), 2000);
                 }
-            } else {
-                setError(response.data.message || 'Verification failed');
             }
         } catch (err) {
             console.error('Face match error:', err);
-            setError(err.response?.data?.message || 'Face verification failed. Please try again.');
+            setError(err.response?.data?.message || 'Face verification failed');
         } finally {
             setProcessing(false);
         }
     };
+
+    const handleSkip = () => {
+       
+        updateKYCData('face_match_passed', false);
+        updateKYCData('face_match_score', 0);
+        updateKYCData('face_match_skipped', true);
+        updateKYCData('face_match_message', 'Skipped by user');
+        
+        setSkipDialogOpen(false);
+        onNext();
+    };
+
+    const idImageUrl = kycData.id_document_preview;
+    const selfieImageUrl = kycData.selfie_preview;
 
     return (
         <Box>
@@ -74,23 +78,12 @@ const FaceMatch = ({ onNext, onBack }) => {
             </Typography>
             <Typography variant="body2" color="text.secondary" paragraph>
                 We'll compare your ID document face with your selfie to verify your identity.
+                <br />
+                <Typography component="span" variant="caption" color="warning.main">
+                    Note: You can skip this step, but your application will be marked for manual verification.
+                </Typography>
             </Typography>
 
-            {/* Hidden image references for processing */}
-            <img 
-                ref={idImageRef}
-                src={kycData.id_document_preview}
-                alt="ID Document"
-                style={{ display: 'none' }}
-            />
-            <img 
-                ref={selfieImageRef}
-                src={kycData.selfie_preview}
-                alt="Selfie"
-                style={{ display: 'none' }}
-            />
-
-            {/* Image Display */}
             <Grid container spacing={3}>
                 <Grid item xs={12} md={6}>
                     <Paper elevation={0} sx={{ p: 2, bgcolor: '#f5f5f5' }}>
@@ -100,7 +93,7 @@ const FaceMatch = ({ onNext, onBack }) => {
                         <Card>
                             <CardMedia
                                 component="img"
-                                image={kycData.id_document_preview}
+                                image={idImageUrl}
                                 alt="ID Document"
                                 sx={{ height: 250, objectFit: 'contain' }}
                             />
@@ -116,7 +109,7 @@ const FaceMatch = ({ onNext, onBack }) => {
                         <Card>
                             <CardMedia
                                 component="img"
-                                image={kycData.selfie_preview}
+                                image={selfieImageUrl}
                                 alt="Selfie"
                                 sx={{ height: 250, objectFit: 'cover' }}
                             />
@@ -125,9 +118,8 @@ const FaceMatch = ({ onNext, onBack }) => {
                 </Grid>
             </Grid>
 
-            {/* Verify Button */}
             {!result && (
-                <Box sx={{ textAlign: 'center', my: 4 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, my: 4 }}>
                     <Button
                         variant="contained"
                         onClick={verifyFace}
@@ -135,6 +127,17 @@ const FaceMatch = ({ onNext, onBack }) => {
                         size="large"
                     >
                         {processing ? <CircularProgress size={24} /> : 'Verify My Face'}
+                    </Button>
+                    
+                    <Button
+                        variant="outlined"
+                        color="warning"
+                        onClick={() => setSkipDialogOpen(true)}
+                        disabled={processing}
+                        size="large"
+                        startIcon={<SkipNextIcon />}
+                    >
+                        Skip for Now
                     </Button>
                 </Box>
             )}
@@ -164,32 +167,38 @@ const FaceMatch = ({ onNext, onBack }) => {
                         {result.message}
                     </Typography>
 
-                    {result.score && (
-                        <Typography variant="body2" color="text.secondary">
-                            Confidence Score: {(result.score * 100).toFixed(1)}%
-                        </Typography>
-                    )}
-
                     {result.passed && (
                         <Alert severity="success" sx={{ mt: 2 }}>
-                            ✓ Face verified! Redirecting to submission...
+                            Face verified! Redirecting to submission...
                         </Alert>
                     )}
 
                     {!result.passed && (
                         <Alert severity="warning" sx={{ mt: 2 }}>
-                            Please retake your selfie with better lighting and try again.
+                            You can either try again or skip this step. Your application will be marked for manual review.
+                            <Box sx={{ mt: 2 }}>
+                                <Button 
+                                    variant="outlined" 
+                                    color="warning"
+                                    onClick={() => {
+                                        updateKYCData('face_match_passed', false);
+                                        updateKYCData('face_match_score', 0);
+                                        updateKYCData('face_match_skipped', true);
+                                        onNext();
+                                    }}
+                                >
+                                    Skip & Continue
+                                </Button>
+                            </Box>
                         </Alert>
                     )}
                 </Paper>
             )}
-
             {error && (
                 <Alert severity="error" sx={{ mt: 2 }}>
                     {error}
                 </Alert>
             )}
-
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
                 <Button variant="outlined" onClick={onBack}>
                     ← Back
@@ -207,5 +216,4 @@ const FaceMatch = ({ onNext, onBack }) => {
         </Box>
     );
 };
-
 export default FaceMatch;

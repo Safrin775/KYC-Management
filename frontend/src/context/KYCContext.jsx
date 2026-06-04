@@ -21,6 +21,7 @@ export const KYCProvider = ({ children }) => {
         face_match_score: null,
         face_match_passed: false,
         face_match_message: '',
+        face_match_skipped: false,
         
         application_id: null,
         status: 'draft'
