@@ -3,10 +3,10 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './components/Auth/login';
 import Register from './components/Auth/register';
-import ApplicantDashboard from './components/Dashboard/applicantDashboard';
-import AuditorDashboard from './components/auditor/AuditorDashboard';
+import ApplicantDashboard from './components/KYC/applicantDashboard';
 import { CircularProgress, Box } from '@mui/material';
 import IndexKYC from './components/KYC/IndexKYC';
+import AuditorDashboard from './components/auditor/AuditorDashborad';
 
 // Protected Route component
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {

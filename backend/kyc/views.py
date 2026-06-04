@@ -196,7 +196,7 @@ class PendingApplicationsView(APIView):
             data.append({
                 'id': app.id,
                 'full_name': app.full_name,
-                'mobile': app.mobile,
+                'status_filter':app.status,
                 'submitted_at': app.submitted_at,
                 'face_match_passed': app.face_match_passed,
                 'face_match_score': app.face_match_score,

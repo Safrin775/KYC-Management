@@ -1,6 +1,17 @@
 import React, { useState } from 'react';
-import {Box,Button,Typography,Paper,CircularProgress,Alert,Card,CardMedia,Grid,Dialog,DialogTitle,
-    DialogContent,DialogContentText,DialogActions
+import {
+    Box,
+    Button,
+    Typography,
+    Paper,
+    CircularProgress,
+    Alert,
+    Card,
+    CardMedia,
+    Grid,
+    Dialog,
+    DialogTitle,
+    DialogActions
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
@@ -118,6 +129,7 @@ const FaceMatch = ({ onNext, onBack }) => {
                 </Grid>
             </Grid>
 
+            {/* Action Buttons */}
             {!result && (
                 <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, my: 4 }}>
                     <Button
@@ -169,7 +181,7 @@ const FaceMatch = ({ onNext, onBack }) => {
 
                     {result.passed && (
                         <Alert severity="success" sx={{ mt: 2 }}>
-                            Face verified! Redirecting to submission...
+                            ✓ Face verified! Redirecting to submission...
                         </Alert>
                     )}
 
@@ -194,11 +206,13 @@ const FaceMatch = ({ onNext, onBack }) => {
                     )}
                 </Paper>
             )}
+
             {error && (
                 <Alert severity="error" sx={{ mt: 2 }}>
                     {error}
                 </Alert>
             )}
+
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
                 <Button variant="outlined" onClick={onBack}>
                     ← Back
@@ -213,7 +227,23 @@ const FaceMatch = ({ onNext, onBack }) => {
                     </Button>
                 )}
             </Box>
+
+            <Dialog open={skipDialogOpen} onClose={() => setSkipDialogOpen(false)}>
+                <DialogTitle>
+                    Skip Face Verification?
+                </DialogTitle>
+                
+                <DialogActions>
+                    <Button onClick={() => setSkipDialogOpen(false)} color="primary">
+                        Go Back
+                    </Button>
+                    <Button onClick={handleSkip} color="warning" variant="contained">
+                        Yes, Skip Verification
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 };
+
 export default FaceMatch;
