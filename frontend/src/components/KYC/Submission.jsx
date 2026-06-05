@@ -7,7 +7,7 @@ import api from '../../services/api';
 
 const Submission = () => {
     const navigate = useNavigate();
-    const { kycData, loading } = useKYC();
+    const { kycData } = useKYC();
     const [submitted, setSubmitted] = useState(false);
     const [applicationId, setApplicationId] = useState(null);
     const [error, setError] = useState('');

@@ -26,17 +26,27 @@ const steps = [
 ];
 
 const KYCStepperContent = () => {
-    const { currentStep, setCurrentStep, submitKYC} = useKYC();
+    const { currentStep, setCurrentStep, submitKYC } = useKYC();
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
 
     const handleNext = () => {
         setCurrentStep(currentStep + 1);
     };
-     const handleBack = () => {
+
+    const handleBack = () => {
         setCurrentStep(currentStep - 1);
     };
 
+    const handleSubmit = async () => {
+        const result = await submitKYC();
+        if (result.success) {
+            setSuccess(true);
+            handleNext();
+        } else {
+            setError(result.error || 'Submission failed');
+        }
+    };
 
     const getStepContent = (step) => {
         switch (step) {
@@ -49,7 +59,7 @@ const KYCStepperContent = () => {
             case 3:
                 return <FaceMatch onNext={handleNext} onBack={handleBack} />;
             case 4:
-                return <Submission onBack={handleBack} />;
+                return <Submission />;
             default:
                 return 'Unknown step';
         }
@@ -76,7 +86,8 @@ const KYCStepperContent = () => {
                 autoHideDuration={6000}
                 onClose={() => setError('')}
                 anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-            ><Alert severity="error" onClose={() => setError('')}>
+            >
+                <Alert severity="error" onClose={() => setError('')}>
                     {error}
                 </Alert>
             </Snackbar>
@@ -84,7 +95,7 @@ const KYCStepperContent = () => {
     );
 };
 
-const IndexKYC = () => {
+const KYCStepper = () => {
     const { isAuthenticated } = useAuth();
 
     if (!isAuthenticated) {
@@ -97,4 +108,5 @@ const IndexKYC = () => {
         </KYCProvider>
     );
 };
-export default IndexKYC;
+
+export default KYCStepper;

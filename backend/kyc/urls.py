@@ -1,4 +1,5 @@
 from django.urls import path
+
 from . import views
 
 urlpatterns = [
@@ -9,8 +10,8 @@ urlpatterns = [
     path('update/<int:application_id>/', views.UpdateKYCView.as_view(), name='update-kyc'),
     path('auditor/pending/', views.PendingApplicationsView.as_view(), name='auditor-pending'),
     path('auditor/application/<int:application_id>/', views.ApplicationDetailView.as_view(), name='auditor-detail'),
-    path('auditor/application/<int:application_id>/approve/', views.ApproveApplicationView.as_view(), name='auditor-approve'),
-    path('auditor/application/<int:application_id>/reject/', views.RejectApplicationView.as_view(), name='auditor-reject'),
+    path('auditor/approve/<int:application_id>/', views.ApproveApplicationView.as_view(), name='auditor-approve'),
+    path('auditor/reject/<int:application_id>/', views.RejectApplicationView.as_view(), name='auditor-reject'),
     path('auditor/resubmit/<int:application_id>/', views.ResubmitRequestView.as_view(), name='auditor-resubmit'),
     path('auditor/audit-log/', views.AuditLogView.as_view(), name='auditor-audit-log'),
 ]

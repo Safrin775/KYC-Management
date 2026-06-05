@@ -29,12 +29,11 @@ class FaceMatchService:
             result = DeepFace.verify(
                 img1_path=temp_id_path,
                 img2_path=temp_selfie_path,
-                model_name='Facenet', 
-                distance_metric='cosine',
-                enforce_detection=True
+                model_name='Facenet512', 
+                distance_metric='euclidean',
+                enforce_detection=True,
+
             )
-            
-           
             distance = result['distance']
             threshold = result['threshold']
             passed = result['verified']

@@ -48,11 +48,8 @@ class SubmitKYCView(APIView):
     
     def post(self, request):
         mobile = request.data.get('mobile')
-        if KYCApplication.objects.filter(mobile=mobile).exists():
-            return Response({
-                'success': False,
-                'error': 'This mobile number is already used in another KYC application'
-            }, status=status.HTTP_400_BAD_REQUEST)
+        if KYCApplication.objects.filter(mobile=mobile, status__in=['pending', 'approved']).exists():
+            return Response({'error': 'Active application with this mobile already exists'})
             
         existing_app = KYCApplication.objects.filter(
             user=request.user,
@@ -197,6 +194,7 @@ class PendingApplicationsView(APIView):
                 'id': app.id,
                 'full_name': app.full_name,
                 'status_filter':app.status,
+                'mobile': app.mobile,
                 'submitted_at': app.submitted_at,
                 'face_match_passed': app.face_match_passed,
                 'face_match_score': app.face_match_score,
@@ -221,12 +219,6 @@ class ApplicationDetailView(APIView):
         
         application = get_object_or_404(KYCApplication, id=application_id)
         
-        AuditLog.objects.create(
-            application=application,
-            auditor=request.user,
-            action='viewed',
-            remarks='Auditor viewed application details'
-        )
         
         return Response({
             'success': True,

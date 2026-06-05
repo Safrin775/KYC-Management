@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import {
-    Table,TableBody,TableCell,TableContainer,TableHead,TableRow,Paper,Button,Chip,TextField,Box,Typography,
-    CircularProgress,Alert,IconButton
+    Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+    Paper, Button, Chip, TextField, Box, Typography,
+    CircularProgress, Alert, IconButton
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import api from '../../services/api';
-
+import ApplicationDetail from './ApplicationDetail';
 
 const ReviewQueue = () => {
     const [applications, setApplications] = useState([]);
@@ -36,27 +37,29 @@ const ReviewQueue = () => {
     }, []);
 
     useEffect(() => {
-        if (searchTerm) {
+        if (searchTerm.trim() === '') {
+            setFilteredApps(applications);
+        } else {
+            const lowerTerm = searchTerm.toLowerCase();
             setFilteredApps(
                 applications.filter(app =>
-                    app.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    app.status_filter.includes(searchTerm)
+                    app.full_name.toLowerCase().includes(lowerTerm) ||
+                    (app.mobile && app.mobile.includes(lowerTerm))
                 )
             );
-        } else {
-            setFilteredApps(applications);
         }
     }, [searchTerm, applications]);
 
-    const getScoreBadge = (score) => {
-        const percentage = (score * 100).toFixed(1);
-        if (score >= 0.7) {
-            return <Chip label={`${percentage}%`} color="success" size="small" />;
-        } else if (score >= 0.2) {
-            return <Chip label={`${percentage}%`} color="warning" size="small" />;
-        } else {
-            return <Chip label={`${percentage}%`} color="error" size="small" />;
+    const getStatusBadge = (app) => {
+        if (app.face_match_skipped) {
+            return <Chip label="Skipped" color="warning" size="small" />;
         }
+        if (app.face_match_passed) {
+            const percent = app.face_match_score ? ` (${(app.face_match_score * 100).toFixed(1)}%)` : '';
+            return <Chip label={`Passed${percent}`} color="success" size="small" />;
+        }
+        const percent = app.face_match_score ? ` (${(app.face_match_score * 100).toFixed(1)}%)` : '';
+        return <Chip label={`Failed${percent}`} color="error" size="small" />;
     };
 
     if (loading) {
@@ -67,28 +70,28 @@ const ReviewQueue = () => {
         );
     }
 
-    // if (selectedApp) {
-    //     return (
-    //         <ApplicationDetail
-    //             applicationId={selectedApp}
-    //             onBack={() => {
-    //                 setSelectedApp(null);
-    //                 fetchApplications();
-    //             }}
-    //         />
-    //     );
-    // }
+    if (selectedApp) {
+        return (
+            <ApplicationDetail
+                applicationId={selectedApp}
+                onBack={() => {
+                    setSelectedApp(null);
+                    fetchApplications();
+                }}
+            />
+        );
+    }
 
     return (
         <Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, alignItems: 'center' }}>
                 <Typography variant="h6">
                     Pending KYC Applications ({filteredApps.length})
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 2 }}>
                     <TextField
                         size="small"
-                        placeholder="Search by name or status"
+                        placeholder="Search by name or mobile"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -109,8 +112,9 @@ const ReviewQueue = () => {
                     <TableHead>
                         <TableRow sx={{ bgcolor: '#f5f5f5' }}>
                             <TableCell><strong>Applicant Name</strong></TableCell>
+                            <TableCell><strong>Mobile</strong></TableCell>
                             <TableCell><strong>Submitted At</strong></TableCell>
-                            <TableCell><strong>Face Match Score</strong></TableCell>
+                            <TableCell><strong>Face Match Status</strong></TableCell>
                             <TableCell><strong>Action</strong></TableCell>
                         </TableRow>
                     </TableHead>
@@ -118,15 +122,11 @@ const ReviewQueue = () => {
                         {filteredApps.map((app) => (
                             <TableRow key={app.id}>
                                 <TableCell>{app.full_name}</TableCell>
+                                <TableCell>{app.mobile || '-'}</TableCell>
                                 <TableCell>
                                     {new Date(app.submitted_at).toLocaleString()}
                                 </TableCell>
-                                <TableCell>
-                                    {app.face_match_score ? 
-                                        getScoreBadge(app.face_match_score) : 
-                                        <Chip label="Skipped" color="warning" size="small" />
-                                    }
-                                </TableCell>
+                                <TableCell>{getStatusBadge(app)}</TableCell>
                                 <TableCell>
                                     <Button
                                         variant="contained"

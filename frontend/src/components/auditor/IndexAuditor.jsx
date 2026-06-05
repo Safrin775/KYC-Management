@@ -15,7 +15,7 @@ import QueueIcon from '@mui/icons-material/Queue';
 import HistoryIcon from '@mui/icons-material/History';
 import { useAuth } from '../../context/AuthContext';
 import ReviewQueue from './ReviewQueue';
-
+import AuditLogViewer from './AuditLog';
 
 function TabPanel({ children, value, index }) {
     return (
@@ -62,9 +62,9 @@ const AuditorDashboard = () => {
                     <ReviewQueue />
                 </TabPanel>
 
-                {/* <TabPanel value={tabValue} index={1}>
+                <TabPanel value={tabValue} index={1}>
                     <AuditLogViewer />
-                </TabPanel> */}
+                </TabPanel>
             </Container>
         </Box>
     );

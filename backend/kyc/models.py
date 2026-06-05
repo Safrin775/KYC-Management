@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.core.validators import MinLengthValidator, MaxLengthValidator
+from django.db.models import Q
 
 class KYCApplication(models.Model):
     STATUS_CHOICES = [
@@ -39,9 +40,11 @@ class KYCApplication(models.Model):
     class Meta:
         ordering = ['-submitted_at']
         constraints = [
-            models.UniqueConstraint(fields=['mobile'], name='unique_mobile_in_kyc'),
-        ]
-        
+        models.UniqueConstraint(
+            fields=['mobile'],
+            condition=Q(status__in=['pending', 'approved']),
+            name='unique_active_mobile'
+        )]
         
 class AuditLog(models.Model):
     
