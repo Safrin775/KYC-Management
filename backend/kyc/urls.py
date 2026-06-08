@@ -15,4 +15,4 @@ urlpatterns = [
     path('auditor/resubmit/<int:application_id>/', views.ResubmitRequestView.as_view(), name='auditor-resubmit'),
     path('auditor/audit-log/', views.AuditLogView.as_view(), name='auditor-audit-log'),
     path('auditor/approved/', views.ApprovedApplicationsView.as_view(), name='auditor-approved'),
-]    
+    path('auditor/analytics/', views.AnalyticsDashboardView.as_view(), name='analytics-dashboard'),]    

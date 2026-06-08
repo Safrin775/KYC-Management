@@ -1,15 +1,5 @@
 import React, { useState } from 'react';
-import {
-    Container,
-    Box,
-    Paper,
-    Tabs,
-    Tab,
-    Typography,
-    AppBar,
-    Toolbar,
-    Button,
-} from '@mui/material';
+import {Container,Box,Paper,Tabs,Tab,Typography,AppBar,Toolbar,Button,} from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
 import QueueIcon from '@mui/icons-material/Queue';
 import HistoryIcon from '@mui/icons-material/History';
@@ -22,6 +12,8 @@ import { IconButton, useTheme } from '@mui/material';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import { useThemeMode } from '../../context/ThemeContext';
+import AnalyticsDashboard from './Analytics';
+import BarChartIcon from '@mui/icons-material/BarChart';
 
 function TabPanel({ children, value, index }) {
     return (
@@ -68,6 +60,7 @@ const AuditorDashboard = () => {
                         <Tab icon={<QueueIcon />} label="Review Queue" />
                         <Tab icon={<HistoryIcon />} label="Audit Log" />
                         <Tab icon={<VerifiedIcon />} label="Approved List" />
+                        <Tab icon={<BarChartIcon />} label="Analytics" />
                     </Tabs>
                 </Paper>
 
@@ -81,6 +74,10 @@ const AuditorDashboard = () => {
 
                 <TabPanel value={tabValue} index={2}>
                     <ApprovedList />
+                </TabPanel>
+
+                <TabPanel value={tabValue} index={3}>
+                    <AnalyticsDashboard />
                 </TabPanel>
             </Container>
         </Box>

@@ -1,34 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import {
-    Paper,Table,TableBody,TableCell,TableContainer,TableHead,TableRow,Typography,Chip,Box,
-    Button,TextField,MenuItem,CircularProgress,Alert
+    Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+    Chip, TextField, Button, MenuItem, Typography, CircularProgress, IconButton, TablePagination
 } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import api from '../../services/api';
-import Papa from 'papaparse';
 
 const AuditLogViewer = () => {
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState({ action: '', date_from: '', date_to: '' });
-
-    useEffect(() => {
-        fetchLogs();
-    }, [filter]);
+    const [totalCount, setTotalCount] = useState(0);
+    const [page, setPage] = useState(0);         
+    const [rowsPerPage, setRowsPerPage] = useState(5);
+    const [filters, setFilters] = useState({ action: '', date_from: '', date_to: '' });
 
     const fetchLogs = async () => {
         setLoading(true);
         try {
-            let url = '/kyc/auditor/audit-log/';
-            const params = new URLSearchParams();
-            if (filter.action) params.append('action', filter.action);
-            if (filter.date_from) params.append('date_from', filter.date_from);
-            if (filter.date_to) params.append('date_to', filter.date_to);
-            if (params.toString()) url += `?${params.toString()}`;
-            
-            const response = await api.get(url);
+            const params = new URLSearchParams({
+                page: page + 1,               
+                page_size: rowsPerPage,
+                ...(filters.action && { action: filters.action }),
+                ...(filters.date_from && { date_from: filters.date_from }),
+                ...(filters.date_to && { date_to: filters.date_to }),
+            });
+            const response = await api.get(`/kyc/auditor/audit-log/?${params.toString()}`);
             if (response.data.success) {
                 setLogs(response.data.logs);
+                setTotalCount(response.data.count);
             }
         } catch (err) {
             console.error('Failed to fetch logs');
@@ -37,89 +37,80 @@ const AuditLogViewer = () => {
         }
     };
 
+    useEffect(() => {
+        fetchLogs();
+    }, [page, rowsPerPage, filters]);
+
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
+
     const exportCSV = () => {
-        const csvData = logs.map(log => ({
-            'Application ID': log.application_id,
-            'Applicant Name': log.applicant_name,
-            'Auditor Email': log.auditor_email,
-            'Action': log.action,
-            'Remarks': log.remarks,
-            'Timestamp': new Date(log.created_at).toLocaleString()
-        }));
-        
-        const csv = Papa.unparse(csvData);
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
+        const headers = ['Application ID', 'Applicant Name', 'Auditor Email', 'Action', 'Remarks', 'Timestamp'];
+        const rows = logs.map(log => [
+            log.application_id,
+            log.applicant_name,
+            log.auditor_email,
+            log.action,
+            log.remarks || '',
+            new Date(log.created_at).toLocaleString()
+        ]);
+        const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `audit_log_${new Date().toISOString().slice(0, 19)}.csv`;
+        a.download = `audit_log_page_${page + 1}.csv`;
         a.click();
+        URL.revokeObjectURL(url);
     };
 
-    const getActionChip = (action) => {
-        const colors = {
-            approved: 'success',
-            rejected: 'error',
-            resubmit: 'warning',
-        };
-        return <Chip label={action} color={colors[action] || 'default'} size="small" />;
-    };
-
-    if (loading) {
-        return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                <CircularProgress />
-            </Box>
-        );
-    }
+    if (loading) return <CircularProgress />;
 
     return (
         <Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, flexWrap: 'wrap', gap: 2 }}>
-                <Typography variant="h6">
-                    Audit Log ({logs.length} records)
-                </Typography>
-                <Button
-                    variant="outlined"
-                    startIcon={<DownloadIcon />}
-                    onClick={exportCSV}
-                    disabled={logs.length === 0}
-                >
-                    Export CSV
-                </Button>
-            </Box>
-
-            <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
+            <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap', alignItems: 'center' }}>
                 <TextField
                     select
                     label="Action"
                     size="small"
-                    value={filter.action}
-                    onChange={(e) => setFilter({ ...filter, action: e.target.value })}
+                    value={filters.action}
+                    onChange={(e) => setFilters({ ...filters, action: e.target.value })}
                     sx={{ minWidth: 120 }}
                 >
                     <MenuItem value="">All</MenuItem>
                     <MenuItem value="approved">Approved</MenuItem>
                     <MenuItem value="rejected">Rejected</MenuItem>
                     <MenuItem value="resubmit">Resubmit</MenuItem>
-                    
+                    <MenuItem value="viewed">Viewed</MenuItem>
                 </TextField>
-                <Typography>From Date</Typography>
+                <Typography variant="body2" sx={{ alignSelf: 'center' }}>
+                    From
+                </Typography>
                 <TextField
                     type="date"
                     size="small"
-                    value={filter.date_from}
-                    onChange={(e) => setFilter({ ...filter, date_from: e.target.value })}
                     InputLabelProps={{ shrink: true }}
+                    onChange={(e) => setFilters({ ...filters, date_from: e.target.value })}
                 />
-                <Typography>To Date</Typography>
+                <Typography variant="body2" sx={{ alignSelf: 'center' }}>
+                    To
+                </Typography>
                 <TextField
                     type="date"
                     size="small"
-                    value={filter.date_to}
-                    onChange={(e) => setFilter({ ...filter, date_to: e.target.value })}
                     InputLabelProps={{ shrink: true }}
+                    onChange={(e) => setFilters({ ...filters, date_to: e.target.value })}
                 />
+                <Button variant="outlined" startIcon={<DownloadIcon />} onClick={exportCSV}>
+                    Export Current Page CSV
+                </Button>
+                <IconButton onClick={fetchLogs}><RefreshIcon /></IconButton>
             </Box>
 
             <TableContainer component={Paper}>
@@ -127,20 +118,26 @@ const AuditLogViewer = () => {
                     <TableHead>
                         <TableRow sx={{ bgcolor: 'background.paper' }}>
                             <TableCell><strong>Application ID</strong></TableCell>
-                            <TableCell><strong>Applicant Name</strong></TableCell>
-                            <TableCell><strong>Auditor</strong></TableCell>
+                            <TableCell><strong>Applicant</strong></TableCell>
                             <TableCell><strong>Action</strong></TableCell>
+                            <TableCell><strong>Auditor</strong></TableCell>
                             <TableCell><strong>Remarks</strong></TableCell>
-                            <TableCell><strong>Timestamp</strong></TableCell>
+                            <TableCell><strong>Time</strong></TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {logs.map((log) => (
+                        {logs.map(log => (
                             <TableRow key={log.id}>
                                 <TableCell>#{log.application_id}</TableCell>
                                 <TableCell>{log.applicant_name}</TableCell>
+                                <TableCell>
+                                    <Chip
+                                        label={log.action}
+                                        size="small"
+                                        color={log.action === 'approved' ? 'success' : log.action === 'rejected' ? 'error' : 'warning'}
+                                    />
+                                </TableCell>
                                 <TableCell>{log.auditor_email}</TableCell>
-                                <TableCell>{getActionChip(log.action)}</TableCell>
                                 <TableCell>{log.remarks || '-'}</TableCell>
                                 <TableCell>{new Date(log.created_at).toLocaleString()}</TableCell>
                             </TableRow>
@@ -149,11 +146,16 @@ const AuditLogViewer = () => {
                 </Table>
             </TableContainer>
 
-            {logs.length === 0 && (
-                <Paper sx={{ p: 4, textAlign: 'center' }}>
-                    <Typography color="text.secondary">No audit logs found</Typography>
-                </Paper>
-            )}
+            <TablePagination
+                component="div"
+                count={totalCount}
+                page={page}
+                onPageChange={handleChangePage}
+                rowsPerPage={rowsPerPage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+                rowsPerPageOptions={[5,10, 20, 50]}
+                labelRowsPerPage="Rows per page"
+            />
         </Box>
     );
 };
