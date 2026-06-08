@@ -9,7 +9,8 @@ from django.shortcuts import get_object_or_404
 from .models import AuditLog, KYCApplication
 from .serializers import KYCSubmitSerializer, KYCApplicationSerializer, KYCStatusSerializer
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-
+from .emails import kyc_submitted 
+from .emails import kyc_approved, kyc_rejected, kyc_resubmit 
 class FaceVerificationView(APIView):
     
     permission_classes = [IsAuthenticated]
@@ -90,6 +91,11 @@ class SubmitKYCView(APIView):
                 status='pending'
             )
             
+            kyc_submitted(
+            applicant_email=request.user.email,
+            name=application.full_name,
+            ref=application.id
+        )
             return Response({
                 'success': True,
                 'message': 'KYC application submitted successfully',
@@ -97,7 +103,7 @@ class SubmitKYCView(APIView):
                 'status': application.status,
                 'face_verified': face_match_passed
             }, status=status.HTTP_201_CREATED)
-        
+            
         return Response({
             'success': False,
             'errors': serializer.errors
@@ -273,6 +279,11 @@ class ApproveApplicationView(APIView):
             remarks=remarks
         )
         
+        kyc_approved(
+            applicant_email=application.user.email,
+            name=application.full_name,
+            ref=application.id
+        )
         return Response({
             'success': True,
             'message': f'Application #{application_id} approved successfully',
@@ -318,6 +329,13 @@ class RejectApplicationView(APIView):
             remarks=remarks
         )
         
+        kyc_rejected(
+            applicant_email=application.user.email,
+            name=application.full_name,
+            ref=application.id,
+            remarks=remarks
+        )
+
         return Response({
             'success': True,
             'message': f'Application #{application_id} rejected',
@@ -362,6 +380,12 @@ class ResubmitRequestView(APIView):
             action='resubmit',
             remarks=remarks
         )
+        kyc_resubmit(
+            applicant_email=application.user.email,
+            name=application.full_name,
+            ref=application.id,
+            remarks=remarks
+        )
         return Response({
             'success': True,
             'message': f'Resubmission requested for application #{application_id}',
@@ -395,7 +419,7 @@ class AuditLogView(APIView):
         logs = logs.order_by('-created_at')
 
         page = request.query_params.get('page', 1)
-        page_size = request.query_params.get('page_size', 5)  # default 20 per page
+        page_size = request.query_params.get('page_size', 20) 
         paginator = Paginator(logs, page_size)
 
         try:

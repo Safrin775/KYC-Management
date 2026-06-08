@@ -3,12 +3,10 @@ import tempfile
 import os
 from deepface import DeepFace
 from django.core.files.uploadedfile import InMemoryUploadedFile
-from PIL import Image
 
 logger = logging.getLogger(__name__)
 
 class FaceMatchService:
-    
     @staticmethod
     def verify_faces(id_image_file: InMemoryUploadedFile, selfie_file: InMemoryUploadedFile):
         
