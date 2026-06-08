@@ -1,8 +1,26 @@
-import React from 'react';
-import { Paper, Typography, Box, Chip, Button } from '@mui/material';
+import React, { useState } from 'react';
+import {
+    Paper, Typography, Box, Chip, Button,
+    Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions
+} from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 const ApplicationInfo = ({ application, onVerify, isVerified }) => {
+    const [dialogOpen, setDialogOpen] = useState(false);
+
+    const handleVerifyClick = () => {
+        setDialogOpen(true);
+    };
+
+    const handleConfirm = () => {
+        setDialogOpen(false);
+        onVerify();
+    };
+
+    const handleCancel = () => {
+        setDialogOpen(false);
+    };
+
     return (
         <Paper sx={{ p: 3, mb: 3, width: '100%' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
@@ -17,7 +35,6 @@ const ApplicationInfo = ({ application, onVerify, isVerified }) => {
                 )}
             </Box>
 
-            {/* Use flexbox for equal spacing */}
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'space-between' }}>
                 <Box sx={{ flex: 1, minWidth: '120px' }}>
                     <Typography variant="body2" color="text.secondary">Full Name</Typography>
@@ -45,12 +62,29 @@ const ApplicationInfo = ({ application, onVerify, isVerified }) => {
                 <Button
                     variant="contained"
                     color="primary"
-                    onClick={onVerify}
+                    onClick={handleVerifyClick}
                     sx={{ mt: 2 }}
                 >
                     Mark Details as Verified
                 </Button>
             )}
+
+            <Dialog open={dialogOpen} onClose={handleCancel}>
+                <DialogTitle>Confirm Verification</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Are you sure you want to mark as verified?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCancel} color="primary">
+                        Cancel
+                    </Button>
+                    <Button onClick={handleConfirm} color="primary" variant="contained" autoFocus>
+                        Yes, Verify
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Paper>
     );
 };

@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     Paper, Typography, Grid, Card, CardMedia, Chip,
-    LinearProgress, Box, Button, Alert, Stack
+    LinearProgress, Box, Button, Alert, Stack,
+    Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
@@ -12,6 +13,8 @@ const getImageUrl = (path) => {
 };
 
 const FaceMatchPanel = ({ application, onManualVerify, manualVerified }) => {
+    const [dialogOpen, setDialogOpen] = useState(false);
+
     const score = application.face_match_score;
     const distance = application.face_match_distance;
     const autoPassed = application.face_match_passed;  
@@ -50,6 +53,19 @@ const FaceMatchPanel = ({ application, onManualVerify, manualVerified }) => {
         badge = { label: 'NO DATA', color: 'default' };
         message = 'No face verification data available. Please manually verify.';
     }
+
+    const handleConfirmClick = () => {
+        setDialogOpen(true);
+    };
+
+    const handleConfirm = () => {
+        setDialogOpen(false);
+        onManualVerify();
+    };
+
+    const handleCancel = () => {
+        setDialogOpen(false);
+    };
 
     return (
         <Paper sx={{ p: 3, mb: 3, width: '100%' }}>
@@ -140,7 +156,7 @@ const FaceMatchPanel = ({ application, onManualVerify, manualVerified }) => {
                     <Button
                         variant="contained"
                         color="primary"
-                        onClick={onManualVerify}
+                        onClick={handleConfirmClick}
                         sx={{ mt: 2 }}
                     >
                         Confirm ID and Selfie Belong to Same Person
@@ -149,10 +165,28 @@ const FaceMatchPanel = ({ application, onManualVerify, manualVerified }) => {
 
                 {manualVerified && (
                     <Alert icon={<CheckCircleIcon fontSize="inherit" />} severity="success" sx={{ mt: 2 }}>
-                        Manual verification confirmed. You have verified the identity.
+                        Manual verification confirmed. 
                     </Alert>
                 )}
             </Box>
+
+            <Dialog open={dialogOpen} onClose={handleCancel}>
+                <DialogTitle>Confirm Manual Verification</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Are you sure you want to verify that identity?
+                        
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCancel} color="primary">
+                        Cancel
+                    </Button>
+                    <Button onClick={handleConfirm} color="primary" variant="contained" autoFocus>
+                        Yes, Verify
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Paper>
     );
 };
