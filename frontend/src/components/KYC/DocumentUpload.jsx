@@ -59,7 +59,7 @@ const DocumentUpload = ({ onNext, onBack }) => {
                 <strong>Accepted:</strong> Aadhar Card, PAN Card
             </Typography>
 
-            <Paper elevation={0} sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper elevation={0} sx={{ p: 3 }}>
                 {!kycData.id_document_preview ? (
                     <Box
                         sx={{

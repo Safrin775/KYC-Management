@@ -92,7 +92,7 @@ const FaceMatchPanel = ({ application, onManualVerify, manualVerified }) => {
                 </Grid>
             </Grid>
 
-            <Box sx={{ mt: 3, p: 2, bgcolor: '#f5f5f5', borderRadius: 2 }}>
+            <Box sx={{ mt: 3, p: 2, bgcolor: 'background.paper', borderRadius: 2 }}>
                 {!isSkipped && (showScore || autoPassed) ? (
                     <>
                         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
@@ -112,7 +112,7 @@ const FaceMatchPanel = ({ application, onManualVerify, manualVerified }) => {
                                         height: 10,
                                         borderRadius: 5,
                                         mb: 1,
-                                        bgcolor: '#e0e0e0',
+                                        bgcolor: 'background.paper',
                                         '& .MuiLinearProgress-bar': { bgcolor: barColor }
                                     }}
                                 />

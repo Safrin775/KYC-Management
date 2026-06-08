@@ -74,7 +74,7 @@ const PersonalInfo = ({ onNext }) => {
                 Please provide your basic details for KYC verification.
             </Typography>
 
-            <Paper elevation={0} sx={{ p: 3, bgcolor: '#f5f5f5' }}>
+            <Paper elevation={0} sx={{ p: 3 }}>
                 <TextField
                     fullWidth
                     label="Full Name"

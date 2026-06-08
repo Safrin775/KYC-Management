@@ -6,7 +6,10 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
-
+import { IconButton, useTheme } from '@mui/material';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
+import { useThemeMode } from '../../context/ThemeContext';
 const ApplicantDashboard = () => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
@@ -15,6 +18,9 @@ const ApplicantDashboard = () => {
     const [application, setApplication] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    
+    const theme = useTheme();
+    const { toggleTheme, mode } = useThemeMode();
 
     const fetchStatus = async () => {
         setLoading(true);
@@ -58,9 +64,12 @@ const ApplicantDashboard = () => {
                     <Typography variant="body1" color="text.secondary">
                         Role: Applicant
                     </Typography>
-                    <Button variant="outlined" color="error" onClick={logout} sx={{ mt: 2 }}>
-                        Logout
-                    </Button>
+                    <Box>
+                    <IconButton onClick={toggleTheme} color="inherit">
+                        {mode === 'light' ? <Brightness4Icon /> : <Brightness7Icon />}
+                    </IconButton>
+                    <Button variant="outlined" color="error" onClick={logout} sx={{ ml: 2 }}>Logout</Button>
+                </Box>
                 </Paper>
 
                 {/* Action Cards */}

@@ -7,7 +7,7 @@ import ApplicantDashboard from './components/kyc/IndexDashboard';
 import { CircularProgress, Box } from '@mui/material';
 import IndexKYC from './components/kyc/KycStepper';
 import AuditorDashboard from './components/auditor/IndexAuditor';
-
+import ThemeContextProvider from './context/ThemeContext';
 // Protected Route component
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
     const { isAuthenticated, loading, user } = useAuth();
@@ -62,11 +62,13 @@ function AppContent() {
 
 function App() {
     return (
-        <Router>
-            <AuthProvider>
-                <AppContent />
-            </AuthProvider>
-        </Router>
+        <ThemeContextProvider>
+            <Router>
+                <AuthProvider>
+                    <AppContent />
+                </AuthProvider>
+            </Router>
+        </ThemeContextProvider>
     );
 }
 

@@ -104,19 +104,17 @@ const AuditLogViewer = () => {
                     <MenuItem value="resubmit">Resubmit</MenuItem>
                     
                 </TextField>
-                
+                <Typography>From Date</Typography>
                 <TextField
                     type="date"
-                    label="From Date"
                     size="small"
                     value={filter.date_from}
                     onChange={(e) => setFilter({ ...filter, date_from: e.target.value })}
                     InputLabelProps={{ shrink: true }}
                 />
-                
+                <Typography>To Date</Typography>
                 <TextField
                     type="date"
-                    label="To Date"
                     size="small"
                     value={filter.date_to}
                     onChange={(e) => setFilter({ ...filter, date_to: e.target.value })}
@@ -127,7 +125,7 @@ const AuditLogViewer = () => {
             <TableContainer component={Paper}>
                 <Table>
                     <TableHead>
-                        <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                        <TableRow sx={{ bgcolor: 'background.paper' }}>
                             <TableCell><strong>Application ID</strong></TableCell>
                             <TableCell><strong>Applicant Name</strong></TableCell>
                             <TableCell><strong>Auditor</strong></TableCell>

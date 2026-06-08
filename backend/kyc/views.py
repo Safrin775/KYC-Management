@@ -235,7 +235,9 @@ class ApplicationDetailView(APIView):
                 'face_match_percentage': round(application.face_match_score * 100, 1) if application.face_match_score else 0,
                 'status': application.status,
                 'submitted_at': application.submitted_at,
-                'rejection_reason': application.rejection_reason
+                'rejection_reason': application.rejection_reason,
+                'reviewed_by_email': application.reviewed_by.email if application.reviewed_by else None,
+                'reviewed_at': application.reviewed_at,
             }
         }, status=status.HTTP_200_OK)
         
@@ -408,3 +410,27 @@ class AuditLogView(APIView):
             'logs': data
         }, status=status.HTTP_200_OK)
         
+class ApprovedApplicationsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if request.user.role != 'auditor':
+            return Response({
+                'success': False,
+                'error': 'Access denied. Auditor role required.'
+            }, status=status.HTTP_403_FORBIDDEN)
+
+        applications = KYCApplication.objects.filter(status='approved').order_by('-reviewed_at')
+
+        data = []
+        for app in applications:
+            data.append({
+                'id': app.id,
+                'full_name': app.full_name,
+                'mobile': app.mobile,
+                'reviewed_by_email': app.reviewed_by.email if app.reviewed_by else 'N/A',
+                'reviewed_at': app.reviewed_at,
+                'face_match_passed': app.face_match_passed,
+                'face_match_score': app.face_match_score,
+            })
+        return Response({'success': True, 'applications': data})

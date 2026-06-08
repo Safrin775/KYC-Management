@@ -16,6 +16,12 @@ import HistoryIcon from '@mui/icons-material/History';
 import { useAuth } from '../../context/AuthContext';
 import ReviewQueue from './ReviewQueue';
 import AuditLogViewer from './AuditLog';
+import ApprovedList from './ApprovedList';
+import VerifiedIcon from '@mui/icons-material/Verified';
+import { IconButton, useTheme } from '@mui/material';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
+import { useThemeMode } from '../../context/ThemeContext';
 
 function TabPanel({ children, value, index }) {
     return (
@@ -29,13 +35,16 @@ const AuditorDashboard = () => {
     const [tabValue, setTabValue] = useState(0);
     const { user, logout } = useAuth();
 
+    const theme = useTheme();
+    const { toggleTheme, mode } = useThemeMode();
+
     const handleLogout = () => {
         logout();
         window.location.href = '/login';
     };
 
     return (
-        <Box sx={{ bgcolor: '#f5f5f5', minHeight: '100vh' }}>
+        <Box sx={{ bgcolor:"background.default", minHeight: '100vh' }}>
             <AppBar position="sticky">
                 <Toolbar>
                     <Typography variant="h6" sx={{ flexGrow: 1 }}>
@@ -47,6 +56,9 @@ const AuditorDashboard = () => {
                     <Button color="inherit" onClick={handleLogout} startIcon={<LogoutIcon />}>
                         Logout
                     </Button>
+                    <IconButton onClick={toggleTheme} color="inherit">
+                        {mode === 'light' ? <Brightness4Icon /> : <Brightness7Icon />}
+                    </IconButton>
                 </Toolbar>
             </AppBar>
 
@@ -55,6 +67,7 @@ const AuditorDashboard = () => {
                     <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)}>
                         <Tab icon={<QueueIcon />} label="Review Queue" />
                         <Tab icon={<HistoryIcon />} label="Audit Log" />
+                        <Tab icon={<VerifiedIcon />} label="Approved List" />
                     </Tabs>
                 </Paper>
 
@@ -64,6 +77,10 @@ const AuditorDashboard = () => {
 
                 <TabPanel value={tabValue} index={1}>
                     <AuditLogViewer />
+                </TabPanel>
+
+                <TabPanel value={tabValue} index={2}>
+                    <ApprovedList />
                 </TabPanel>
             </Container>
         </Box>

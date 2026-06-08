@@ -97,7 +97,7 @@ const FaceMatch = ({ onNext, onBack }) => {
 
             <Grid container spacing={3}>
                 <Grid item xs={12} md={6}>
-                    <Paper elevation={0} sx={{ p: 2, bgcolor: '#f5f5f5' }}>
+                    <Paper elevation={0} sx={{ p: 2}}>
                         <Typography variant="subtitle1" gutterBottom align="center">
                             Face from ID Document
                         </Typography>
@@ -113,7 +113,7 @@ const FaceMatch = ({ onNext, onBack }) => {
                 </Grid>
 
                 <Grid item xs={12} md={6}>
-                    <Paper elevation={0} sx={{ p: 2, bgcolor: '#f5f5f5' }}>
+                    <Paper elevation={0} sx={{ p: 2}}>
                         <Typography variant="subtitle1" gutterBottom align="center">
                             Your Selfie
                         </Typography>

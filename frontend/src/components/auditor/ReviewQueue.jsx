@@ -110,7 +110,7 @@ const ReviewQueue = () => {
             <TableContainer component={Paper}>
                 <Table>
                     <TableHead>
-                        <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                        <TableRow sx={{ bgcolor: "background.default" }}>
                             <TableCell><strong>Applicant Name</strong></TableCell>
                             <TableCell><strong>Mobile</strong></TableCell>
                             <TableCell><strong>Submitted At</strong></TableCell>

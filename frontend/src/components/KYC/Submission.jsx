@@ -63,7 +63,7 @@ const Submission = () => {
                     Review your information before submitting for auditor review.
                 </Typography>
                 
-                <Paper elevation={0} sx={{ p: 3, bgcolor: '#f5f5f5', mb: 3 }}>
+                <Paper elevation={0} sx={{ p: 3, mb: 3 }}>
                     <Typography variant="h6" gutterBottom>
                         Application Summary
                     </Typography>
